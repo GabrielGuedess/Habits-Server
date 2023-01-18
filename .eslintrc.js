@@ -7,6 +7,17 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
+  settings: {
+    'import/extensions': ['.js', '.ts'],
+    'import/parsers': {
+      '@typescript-eslint/parser': ['.ts'],
+    },
+    'import/resolver': {
+      node: {
+        extensions: ['.js', '.ts'],
+      },
+    },
+  },
   plugins: [
     '@typescript-eslint/eslint-plugin',
     'import',
@@ -28,7 +39,6 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
     'import/extensions': [
       'error',
       'ignorePackages',
@@ -45,6 +55,11 @@ module.exports = {
           '/node/',
           '/@nestjs/',
           'module',
+          '/^app/',
+          '/^entities/',
+          '/^repositories/',
+          '/^infra/',
+          '/^helpers/',
           ['parent', 'sibling', 'index'],
         ],
         alphabetize: { order: 'asc', ignoreCase: true },

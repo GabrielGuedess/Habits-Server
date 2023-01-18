@@ -2,8 +2,8 @@ import { CacheModule, Module } from '@nestjs/common';
 
 import * as redisStore from 'cache-manager-redis-store';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { DatabaseModule } from 'infra/database/database.module';
+import { HttpModule } from 'infra/http/http.module';
 
 @Module({
   imports: [
@@ -14,8 +14,8 @@ import { AppService } from './app.service';
       host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT,
     }),
+    HttpModule,
+    DatabaseModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

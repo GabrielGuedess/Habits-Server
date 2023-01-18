@@ -1,6 +1,6 @@
 services:
   app:
-    container_name: api
+    container_name: api-habits
     build:
       dockerfile: Dockerfile
       context: .
@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/usr/src/app
     env_file:
-    - .env
+      - .env
     command: pnpm start:dev
     ports:
       - 3000:3000
@@ -18,7 +18,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis
+    container_name: redis-habits
     ports:
       - '6379:6379'
     volumes:
@@ -26,7 +26,7 @@ services:
 
   db:
     image: postgres:latest
-    container_name: db
+    container_name: db-habits
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -39,6 +39,6 @@ services:
 
 volumes:
   redis:
-      driver: local
+    driver: local
   pgdata:
     driver: local
