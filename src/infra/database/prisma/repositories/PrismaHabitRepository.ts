@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import * as dayjs from 'dayjs';
 
+import { SummaryDTO } from 'app/dtos/SummaryDTO';
 import { Habit } from 'app/entities/Habit';
 import { HabitRepository } from 'app/repositories/HabitRepository';
 
@@ -12,15 +13,44 @@ import { PrismaService } from '../prisma.service';
 export class PrismaHabitRepository implements HabitRepository {
   constructor(private prisma: PrismaService) {}
 
+  async summary(): Promise<SummaryDTO> {
+    const summary: SummaryDTO = await this.prisma.$queryRaw`
+      SELECT
+        D.id,
+        D.date,
+        (
+          SELECT
+            cast(count(*) as float)
+          FROM day_habits DH
+          WHERE DH.day_id = D.id
+        ) as completed,
+        (
+          SELECT
+            cast(count(*) as float)
+          FROM habit_week_days HWD
+          JOIN habits H
+            ON H.id = HWD.habit_id
+          WHERE
+            HWD.week_day = cast(extract(dow from D.date) as int)
+            AND H.created_at <= D.date
+        ) as amount
+      FROM days D
+    `;
+
+    return summary;
+  }
+
   async findCompleted(date: Date): Promise<string[]> {
     const day = await this.prisma.day.findUnique({
       where: {
-        date: new Date(date),
+        date,
       },
       include: {
         dayHabits: true,
       },
     });
+
+    console.log(day);
 
     return day?.dayHabits.map(dayHabit => dayHabit.habit_id);
   }
@@ -61,5 +91,47 @@ export class PrismaHabitRepository implements HabitRepository {
         },
       },
     });
+  }
+
+  async toggledCompleted(id: string): Promise<void> {
+    const today = dayjs().startOf('day').toDate();
+
+    let day = await this.prisma.day.findUnique({
+      where: {
+        date: today,
+      },
+    });
+
+    if (!day) {
+      day = await this.prisma.day.create({
+        data: {
+          date: today,
+        },
+      });
+    }
+
+    const dayHabit = await this.prisma.dayHabit.findUnique({
+      where: {
+        day_id_habit_id: {
+          day_id: day.id,
+          habit_id: id,
+        },
+      },
+    });
+
+    if (dayHabit) {
+      await this.prisma.dayHabit.delete({
+        where: {
+          id: dayHabit.id,
+        },
+      });
+    } else {
+      await this.prisma.dayHabit.create({
+        data: {
+          day_id: day.id,
+          habit_id: id,
+        },
+      });
+    }
   }
 }
